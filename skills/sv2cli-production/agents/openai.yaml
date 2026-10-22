@@ -1,0 +1,3 @@
+interface:
+  display_name: "SV2 工程制作与时序校验"
+  short_description: "Edit and render SV2 projects with measured timing checks"
