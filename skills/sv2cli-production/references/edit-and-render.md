@@ -18,8 +18,8 @@ voice 的名称匹配是精确的。`voices` 缓存目录不是安装或激活�
 `paramToneShift` 为 cents，不是 MIDI 转调。改变 gender/tension/loudness 可以影响表现，但不是“变成另一个歌手”的保证。换库核对 Mandarin/xsampa、Japanese/romaji，避免只改显示名称。
 
 ```sh
-sv2cli render song.svp --track '#1' -o lead.wav --warmup 30 --attempts 6 --timeout 1800
+sv2cli render song.svp --track '#1' -o lead.wav --warmup 30 --attempts 1 --timeout 1800
 sv2cli render song.svp --stems -o stems --bit-depth 24
 ```
 
-不要用 single-pass 得到一个有声文件就宣布成功。插件加载回读验证只覆盖谱面，不证明音色参数与目标听感一致。需要真实试听的需求应制作短 A/B，区分可程序化检查与听审。
+原生宿主按整数采样时钟单次渲染，禁止重渲染收敛或自动回退旧宿主。有声文件不等于验收通过；检查所有音符活动、谱面活动区间的异常静音、实际起音和格式。插件回读核对谱面及显式表达/音高曲线/效果参数，仍不证明目标听感。需要真实试听的需求应制作短 A/B，区分可程序化检查与听审。
