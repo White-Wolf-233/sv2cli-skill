@@ -80,6 +80,8 @@ sv2cli convert midi-in performance.mid --truncate-overlaps --polyphony split -o 
 重叠，二者都可能改变音乐数据，应按用户目的明确选择并检查转换报告。
 有 MIDI 歌词事件的音符保留歌词，其余才使用 `--lyric-default`。
 
+完整练习分轨中，同唱段要出现在每个独立声部里，不能只交内部差分轨。核对分声部入口的一字多音接续、同音延音线和回到同唱处；不要在分叉处补一次新的“啊”。没有实际分写的声部按用户要求合成一份。详见 [分声部与音高说明](midi-and-pitch.md)。
+
 ## 连续元音、滑音与断音
 
 ```sh
