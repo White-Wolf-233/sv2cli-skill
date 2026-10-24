@@ -18,6 +18,8 @@ python -m pip install ".[render,midi,audio]"
 
 ## 使用
 
+项目维护的 [官方使用指导](skills/sv2cli-production/references/official-usage.md) 包含版本与入口核对、SVP/MIDI 工作流、平直音高、单次渲染架构、失败处理和交付验收。skill 入口也链接此文；它是本项目的使用指导，Synthesizer V 原生接口以 Dreamtonics 文档和实际版本为准。
+
 > 用 $sv2cli-production 处理这个 SVP。旋律歌词不变，低声部更厚一点；允许直接覆盖，先检查实际起收音，再导出分轨。
 
 > 用 $sv2cli-production 检查第二轨第 53–60 小节为什么没唱齐。工程时值与实际发声分开检查，给出同时间轴前后对照。

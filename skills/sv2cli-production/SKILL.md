@@ -9,6 +9,7 @@ description: 使用 sv2cli 编辑、渲染和验收 Synthesizer V Studio 2 工�
 
 ## 按任务加载说明
 
+- 首次使用、需要端到端步骤或查询项目约定：读 [官方使用指导](references/official-usage.md)。
 - 音色、声库、语言和保谱编辑：读 [references/edit-and-render.md](references/edit-and-render.md)。
 - “时值不对”“没唱齐”、起收音、短字、与参考表演对齐：优先读 [references/timing-and-expression.md](references/timing-and-expression.md)。
 - 渲染失败、分轨、交付：读 [references/delivery.md](references/delivery.md)。
