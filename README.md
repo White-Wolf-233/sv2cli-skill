@@ -1,8 +1,10 @@
 # sv2cli-production skill
 
-用于 Synthesizer V Studio 2 工程编辑、实际发声时序诊断、合唱力度与分轨交付的 Agent Skill。配套工具：[sv2cli](https://github.com/White-Wolf-233/sv2cli)，要求 **0.3.0.dev1 或包含对应能力的更新版本**。
+用于 Synthesizer V Studio 2 填词分音、工程编辑、实际发声时序诊断、合唱力度与分轨交付的 Agent Skill。配套工具：[sv2cli](https://github.com/White-Wolf-233/sv2cli)，要求 **0.3.0.dev2 或包含对应能力的更新版本**。
 
 skill 组织工作流，实际编辑、保存、渲染和音频计算由 CLI 完成。包括原位覆盖与备份、音乐坐标、重复组引用定位、入声诊断、显式音频移位及失败续跑。不会将指纹或“文件有声音”当成已经唱齐，也不声称实现自动参考录音强制对齐。
+
+新填词工作流要求逐段文本及逐音计划，经 `lyrics-check --require-full-project` 核对，再用 `render --lyrics-plan` 在加载插件前拦住不匹配数据。覆盖多段词误复制、同字多音与续唱、主组/库组的时间顺序及独立分声部交付。认可的整体音色作为基准保存，气泡音/沙哑单独定位和试听，不默认推翻整套音色。[填词分音步骤](skills/sv2cli-production/references/lyrics-and-syllables.md)。
 
 ## 安装
 

@@ -1,16 +1,17 @@
 ---
 name: sv2cli-production
-description: 使用 sv2cli 编辑、渲染和验收 Synthesizer V Studio 2 工程；适用于换声库、合唱音色与力度、实际发声时序诊断、对齐校正和分轨交付。
+description: 使用 sv2cli 编辑、渲染和验收 Synthesizer V Studio 2 工程；适用于填词分音与连唱核对、声库和音色、实际发声时序诊断及分轨交付。
 ---
 
 # SV2 工程制作
 
-本版工作流使用 sv2cli 0.3.0.dev1 或支持下述能力的更新版本。先检查 `sv2cli --version`、`doctor` 中的 packagePath/nativeHost、`capabilities` 和所需命令的 `--help`；离线编辑不要求开启 Studio，实际合成要求已安装并激活的 VST3 和声库。
+本版工作流使用 sv2cli 0.3.0.dev2 或支持下述能力的更新版本。先检查同一个入口的 `--version`、`doctor` 中的 packagePath/nativeHost、`capabilities` 和所需命令的 `--help`；填词任务还应确认 `lyrics-plan-schema`、`lyrics-check` 与 `render --lyrics-plan` 实际可用。不要读了新版说明却继续调用旧全局安装；使用任务已验证的私有环境/启动器，所有子进程沿用它。离线编辑不要求开启 Studio，实际合成要求已安装并激活的 VST3 和声库。
 
 ## 按任务加载说明
 
 - 首次使用、需要端到端步骤或查询项目约定：读 [官方使用指导](references/official-usage.md)。
 - 音色、声库、语言和保谱编辑：读 [references/edit-and-render.md](references/edit-and-render.md)。
+- 填词、分音、重复段落、多段歌词或 MIDI 默认歌词：先读 [references/lyrics-and-syllables.md](references/lyrics-and-syllables.md)，用随附核对脚本检查文本和逐音对应，正确后再渲染。
 - “时值不对”“没唱齐”、起收音、短字、与参考表演对齐：优先读 [references/timing-and-expression.md](references/timing-and-expression.md)。
 - 渲染失败、分轨、交付：读 [references/delivery.md](references/delivery.md)。
 - 自动化任务的进度、质量闭环与用户新反馈：读 [references/feedback-loop.md](references/feedback-loop.md)。
@@ -24,6 +25,8 @@ description: 使用 sv2cli 编辑、渲染和验收 Synthesizer V Studio 2 工�
 5. 按用户选择保存：允许覆盖时用 `--in-place` 或 `-o 原工程 --force`，工具自动备份并原子替换；要求另存时使用新路径。覆盖授权不等于允许改谱；谱面锁定独立生效。不要把历史的“不得覆盖”偏好强加到新任务。
 6. 需要音频时先做代表性短工程/已有片段，再完整渲染。当前没有原生 region-render；不要编造该选项。手工制作临时片段时保留正确的变速、组偏移和前滚，声明它是测试副本。
 7. 验收分别报告：谱面差异、实际发声活动/时序证据、参考表演对照、主观听审。文件不空、指纹一致或 `valid:true` 均不能替代“唱齐/唱对/像参考”的证据。
+
+填词不按音符数量机械切字符串。先展开各段实际歌词，依据原谱建立字与音符的对应：新音节、延续前字的一字多音、同音延音分别处理。新填或改词的生产交付先用 `lyrics-check --require-full-project`，再通过 `render --lyrics-plan` 启动合成；计划不匹配先修数据。保谱锁只能防止编辑后继续改变已有数据，不能证明初始写谱和填词正确。
 
 自动化优先完成可确定步骤。低置信度音素、连续同音短字、连唱或参考对应关系，标注具体轨/小节/字和需要复核的原因；不要把整曲退回手工处理。
 

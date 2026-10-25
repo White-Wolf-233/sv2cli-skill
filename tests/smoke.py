@@ -1,5 +1,6 @@
 """Execute the packaged recipe and a timing/overwrite workflow in isolation."""
 import tempfile
+import json,sys,subprocess
 from pathlib import Path
 import wave
 import numpy as np
@@ -26,4 +27,17 @@ with tempfile.TemporaryDirectory(prefix='sv2cli-skill-') as folder:
     fixed=execute(_parser().parse_args(['audio-shift',str(src),str(wav),'--track','#1','--seconds','-.24','-o',str(folder/'fixed.wav')]))
     assert abs(fixed['after']['notes'][0]['entryDeltaSeconds'])<.02
     assert src.read_bytes()!=before and fixed['scoreUnchanged'] and not fixed['resampled']
-print('Packaged recipe, backup, score lock, musical time and audio-shift smoke passed.')
+    # Independent underlay intent: reject wrong text, then match an explicit correction.
+    plan={'source':{'reference':'independent smoke fixture','reviewed':True},'tracks':[{'selector':'#1','phrases':[
+        {'id':'line-1','start':'1','end':'3','text':'山','notes':[{'at':'1','dur':'2','pitch':60,'lyrics':'山'}]}]}]}
+    planfile=folder/'lyrics-plan.json';planfile.write_text(json.dumps(plan),'utf8')
+    helper=root/'skills/sv2cli-production/scripts/audit_lyrics.py'
+    checked=subprocess.run([sys.executable,str(helper),str(src),'--plan',str(planfile),'--require-full-project'],capture_output=True,text=True,encoding='utf8')
+    assert checked.returncode==2 and not json.loads(checked.stdout)['valid'],checked.stderr
+    corrected=folder/'corrected.svp'
+    apply(Project.load(src),[{'op':'lyrics.set','tracks':['#1'],'values':['山']}],True).save(corrected)
+    checked=subprocess.run([sys.executable,str(helper),str(corrected),'--plan',str(planfile),'--require-full-project'],capture_output=True,text=True,encoding='utf8')
+    report=json.loads(checked.stdout)
+    assert checked.returncode==0 and report['allProjectNotesMapped'],checked.stderr
+    assert not report['originalScoreIndependentlyVerified'] and not report['subjectiveListeningVerified']
+print('Recipe, backup, score lock, timing and independent lyric-plan rejection/correction smoke passed.')

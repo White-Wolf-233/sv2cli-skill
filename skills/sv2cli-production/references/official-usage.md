@@ -1,7 +1,7 @@
 # sv2cli 官方使用指导
 
 这是 sv2cli 项目的维护使用约定，面向使用者和自动化 Agent。适用于
-0.3.0.dev1 的单次原生宿主及后续兼容版本；Synthesizer V 的原生功能和
+0.3.0.dev2 的歌词计划核对、单次原生宿主及后续兼容版本；Synthesizer V 的原生功能和
 接口定义以 Dreamtonics 文档、已安装版本及实际插件回读为准。
 
 ## 先确认正在使用哪一份工具
@@ -11,6 +11,8 @@ sv2cli --version
 sv2cli doctor
 sv2cli capabilities
 sv2cli recipe-schema
+sv2cli lyrics-plan-schema
+sv2cli lyrics-check --help
 ```
 
 下文用 `sv2cli` 表示当前版本的入口。Windows 便携包中使用
@@ -36,6 +38,8 @@ NumPy，以及独立构建或随便携包提供的 native 宿主。doctor 只检
 | 交付电平 | audio-normalize / render --target-peak | 采样峰值增益，不是 LUFS 或真峰值归一化 |
 
 ## 已有工程的标准路径
+
+带歌词的 MIDI、手工写谱、PDF 转换和多段词，先读 [填词与分音](lyrics-and-syllables.md)。必须核对独立来源与各段实际文本，再核对每字/续唱音符；`validate`、F0 命中和 score-lock 不能替代这一步。
 
 ```sh
 sv2cli inspect song.svp
@@ -147,6 +151,8 @@ CLI 原生输出 WAV，MP3/FLAC 由实际可用的编码器另行转码；钢琴
 音高分析、参考表演对照、主观听审。缺少任何一层，就明确写出该层未验证。
 用户没有试听回复不等于已经接受；不能用指纹一致或 valid:true 宣称
 “完全符合原谱”“所有声部绝对同时出声”。
+
+验收中另外列出逐段歌词与逐音分配；不要将“某两个音抽查正确”推广为整轨音高正确，也不要将自相关/F0 失败直接归因为低电平。没有独立证据时保留为测量未决项。不同声部的不同旋律/歌词不能默认用整段能量互相关当统一时间真值；先在同拍、同歌词或有明确信号锚点的独立片段上核查。
 
 更细的故障与数据选项见 [MIDI 与音高说明](midi-and-pitch.md)，时序定位见
 [时序与表达](timing-and-expression.md)，交付与续跑见 [交付说明](delivery.md)。
