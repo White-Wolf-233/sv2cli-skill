@@ -111,7 +111,7 @@ sv2cli audio-normalize mix.wav --target-peak -1 -o delivery.wav
 
 实际按 manifest 的轨道映射选择声部文件。新分轨共享完整原工程时间轴。宽频起音受合法辅音提前影响时，可在检查频谱后明确选 `--landmark voiced`。
 
-原生渲染自动核对工程与参数回读、所有音符活动窗口、谱面活动区间的异常静音及首个独立声部起音。多轨合排用 `--entry-policy report`；逐声部验收用 stems。
+原生渲染自动核对工程与参数回读、音符活动窗口和异常静音。默认记录起音测量结果并导出音频。需要严格限制起音误差时用 `--entry-policy check`，测量各声部时用 `--stems`。
 
 逐轨独立归一化会改变声部相对电平；保留原混音平衡时对合排整体处理增益。CLI 原生输出 WAV，MP3/FLAC 由实际可用的编码器另行转码。
 

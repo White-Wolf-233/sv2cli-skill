@@ -27,14 +27,15 @@ def all_notes(data, track=None):
             for bar in sec['bars']:
                 for n in bar['notes']:
                     rows.append({'track': t['track'], 'bar': bar['bar'], **n})
-    return sorted(rows, key=lambda n: n['onset_q'])
+    return sorted(rows, key=lambda n: (n['track'], n['onset_q']))
 
 def find_pitch_motif(notes, motif_pitches):
     hits = []
     m = len(motif_pitches)
     for i in range(len(notes) - m + 1):
         if [notes[i+j]['midi'] for j in range(m)] == motif_pitches:
-            hits.append(notes[i])
+            end = max(n['onset_q'] + n['duration_q'] for n in notes[i:i+m])
+            hits.append({**notes[i], 'end_q': end})
     return hits
 
 def find_interval_motif(notes, semitone_intervals):
@@ -42,7 +43,8 @@ def find_interval_motif(notes, semitone_intervals):
     m = len(semitone_intervals)
     for i in range(len(notes) - m):
         if all(notes[i+j+1]['midi'] - notes[i+j]['midi'] == semitone_intervals[j] for j in range(m)):
-            hits.append(notes[i])
+            end = max(n['onset_q'] + n['duration_q'] for n in notes[i:i+m+1])
+            hits.append({**notes[i], 'end_q': end})
     return hits
 
 def main():
@@ -57,25 +59,35 @@ def main():
     data = load(a.score)
     notes = all_notes(data, a.track)
 
-    if a.motif:
-        pitches = list(map(int, a.motif.split()))
-        hits = find_pitch_motif(notes, pitches)
-        mode = 'pitch'
-    else:
-        intervals = list(map(int, a.interval.split()))
-        hits = find_interval_motif(notes, intervals)
-        mode = 'interval'
+    try:
+        pattern = list(map(int, (a.motif if a.motif is not None else a.interval).split()))
+        if not pattern:
+            p.error('Provide at least one pitch or interval')
+    except ValueError:
+        p.error('Pitches and intervals must be integers')
+    mode = 'pitch' if a.motif is not None else 'interval'
+    from itertools import groupby
+    hits = []
+    for _, track_notes in groupby(notes, key=lambda n: n['track']):
+        sequence = list(track_notes)
+        search = find_pitch_motif if mode == 'pitch' else find_interval_motif
+        hits.extend(search(sequence, pattern))
 
     result = []
-    prev_q = None
-    for h in hits:
-        dist = round(h['onset_q'] - prev_q, 4) if prev_q is not None else None
+    previous = {}
+    for h in sorted(hits, key=lambda n: (n['onset_q'], n['track'])):
+        prev = previous.get(h['track'])
+        dist = round(h['onset_q'] - prev['onset_q'], 4) if prev is not None else None
+        gap = round(h['onset_q'] - prev['end_q'], 4) if prev is not None else None
         result.append({
             'track': h['track'], 'bar': h['bar'], 'beat': h['beat'],
             'onset_q': h['onset_q'], 'lyrics': h['lyrics'],
             'distance_from_prev_q': dist,
+            'end_q': round(h['end_q'], 4),
+            'duration_q': round(h['end_q'] - h['onset_q'], 4),
+            'gap_from_prev_q': gap,
         })
-        prev_q = h['onset_q']
+        previous[h['track']] = h
 
     out = {'mode': mode, 'matchCount': len(result), 'occurrences': result}
     json.dump(out, sys.stdout, ensure_ascii=False, indent=2)

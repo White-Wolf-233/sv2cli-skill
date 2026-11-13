@@ -27,7 +27,7 @@ sv2cli loudness-check mix.wav -o loudness.json
 
 `loudness-check` 输出 `integratedLUFS`、`truePeakDBFS` 和 `shortTermBins`（每秒一个 LUFS 值）。
 
-真峰值采用 4x 线性过采样近似，与 BS.1770 Annex 2 规定方法误差约 ±0.5 dB。
+真峰值采用 4 倍、129 抽头窗函数 sinc FIR 重建估算，能检测采样点之间的峰值。
 
 ## 按段落对比
 

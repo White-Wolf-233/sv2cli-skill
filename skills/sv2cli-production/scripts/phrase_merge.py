@@ -3,7 +3,7 @@ phrase_merge.py — 逐句分工后合并进全曲歌词计划库。
 
 工作流：
   1. 对每一句单独生成 lyrics-plan 片段（JSON 对象，含 id/start/end/text/notes）。
-  2. 用本脚本把各片段 merge 进总计划文件，检测 id 重复和小节重叠。
+  2. 用本脚本把各片段 merge 进总计划文件，检测 id 冲突和四分拍范围重叠。
   3. 合并后的计划用于 lyrics-check / render --lyrics-plan。
 
 用法：
@@ -13,7 +13,7 @@ phrase_merge.py — 逐句分工后合并进全曲歌词计划库。
     # 读取 stdin 的片段（方便管道）
     echo '{"id":"v1l3",...}' | python phrase_merge.py master-plan.json -
 
-输出：覆盖 master-plan.json（先备份为 .bak）。
+全部片段通过后原子保存 master-plan.json，原文件备份为 .bak。同内容重复提交可直接复用。
 
 片段格式（单个 phrase 对象）：
 {
@@ -27,7 +27,7 @@ phrase_merge.py — 逐句分工后合并进全曲歌词计划库。
 master-plan 格式与 sv2cli lyrics-plan-schema 一致；
 片段中可指定 "track_selector"（默认 "#1"）决定归入哪条轨。
 """
-import argparse, json, sys
+import argparse, json, os, sys, tempfile
 from pathlib import Path
 
 def load(path):
@@ -37,9 +37,19 @@ def load(path):
 def save(path, data):
     p = Path(path)
     bak = p.with_suffix(p.suffix + '.bak')
-    if p.exists():
-        bak.write_bytes(p.read_bytes())
-    p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding='utf-8')
+    content = json.dumps(data, ensure_ascii=False, indent=2, allow_nan=False) + '\n'
+    fd, temporary = tempfile.mkstemp(prefix=p.name + '.', dir=p.parent)
+    try:
+        with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        if p.exists():
+            bak.write_bytes(p.read_bytes())
+        os.replace(temporary, p)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
     return str(bak) if bak.exists() else None
 
 def _fraction(s):
@@ -58,21 +68,15 @@ def merge_phrase(master, phrase):
         track = {'selector': selector, 'phrases': []}
         master['tracks'].append(track)
 
-    # duplicate id check
-    existing_ids = {ph['id'] for ph in track.get('phrases', [])}
     pid = phrase.get('id', '')
-    if pid in existing_ids:
-        return False, f"duplicate phrase id '{pid}' in track {selector}"
+    if not isinstance(pid, str) or not pid.strip():
+        return False, 'phrase id must be a nonempty string'
 
     # overlap check
     new_start = _fraction(phrase.get('start', '0'))
     new_end   = _fraction(phrase.get('end', '0'))
-    for ph in track.get('phrases', []):
-        s = _fraction(ph.get('start', '0'))
-        e = _fraction(ph.get('end', '0'))
-        if new_start < e and new_end > s:
-            return False, f"phrase '{pid}' [{phrase['start']},{phrase['end']}) overlaps existing '{ph['id']}' [{ph['start']},{ph['end']})"
-
+    if new_start >= new_end:
+        return False, f"phrase '{pid}' must end after its start"
     p_entry = {
         'id': pid,
         'start': str(phrase['start']),
@@ -80,6 +84,16 @@ def merge_phrase(master, phrase):
         'text': phrase.get('text', ''),
         'notes': phrase.get('notes', []),
     }
+    for ph in track.get('phrases', []):
+        if ph['id'] == pid:
+            if ph == p_entry:
+                return True, 'already merged'
+            return False, f"duplicate phrase id '{pid}' in track {selector}"
+        s = _fraction(ph.get('start', '0'))
+        e = _fraction(ph.get('end', '0'))
+        if new_start < e and new_end > s:
+            return False, f"phrase '{pid}' [{phrase['start']},{phrase['end']}) overlaps existing '{ph['id']}' [{ph['start']},{ph['end']})"
+
     track['phrases'].append(p_entry)
     track['phrases'].sort(key=lambda x: _fraction(x['start']))
     return True, 'ok'
@@ -91,6 +105,20 @@ def main():
     a = p.parse_args()
 
     mp = Path(a.master)
+    mp.parent.mkdir(parents=True, exist_ok=True)
+    lock = mp.with_suffix(mp.suffix + '.lock')
+    try:
+        lock_file = lock.open('x')
+    except FileExistsError:
+        p.error(f'Master plan is being merged: {lock}')
+    try:
+        merge_files(a, mp)
+    finally:
+        lock_file.close()
+        lock.unlink()
+
+
+def merge_files(a, mp):
     if mp.exists():
         master = load(a.master)
     else:
@@ -111,14 +139,14 @@ def main():
             errors.append(msg)
             print(f'  ERROR: {msg}', file=sys.stderr)
 
+    if errors:
+        print(f'{len(errors)} error(s). Fix the fragments and run the merge again.', file=sys.stderr)
+        sys.exit(1)
     bak = save(a.master, master)
     total = sum(len(t.get('phrases', [])) for t in master.get('tracks', []))
     print(f'\nmerged {merged} phrase(s). master now has {total} phrase(s).')
     if bak:
         print(f'backup: {bak}')
-    if errors:
-        print(f'{len(errors)} error(s); master saved with successful merges only.')
-        sys.exit(1)
 
 if __name__ == '__main__':
     main()

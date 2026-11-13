@@ -34,6 +34,7 @@ python -m pip install ".[render,midi,audio]"
 
 ```sh
 python tests/smoke.py
+python tests/helpers_smoke.py
 ```
 
 该 smoke 实际执行示例 recipe、保谱原位保存、音乐坐标和测试信号时序校正；不是模型触发质量评测，也不是歌声听审。许可插件验证与本仓库测试分开。

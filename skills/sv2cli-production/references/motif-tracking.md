@@ -34,7 +34,7 @@ python scripts/motif_distance.py score.json --interval "2 2 -2"
 ```
 
 输出字段 `distance_from_prev_q`：从上次出现的起点到本次起点，单位四分拍。  
-如果想算"上次唱完到现在多久"：`distance_from_prev_q - prev_duration_q`。
+`end_q` 和 `duration_q` 给出片段结束与长度，`gap_from_prev_q` 给出距同轨上次片段结束的间隔。全轨搜索时按轨匹配，并按各轨分别计算距离。
 
 ## 密度规则
 
