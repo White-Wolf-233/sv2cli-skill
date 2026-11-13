@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "project": "",
+  "motifs": [
+    {
+      "id": "motif-A",
+      "description": "Opening four-note figure",
+      "pitch_contour": [60, 62, 64, 62],
+      "interval_contour": [2, 2, -2],
+      "rhythm": "1 1 1 2",
+      "first_statement": {"bar": 1, "track": 1, "lyrics": ""},
+      "occurrences": [
+        {
+          "bar": 1,
+          "beat": 1,
+          "onset_q": 0,
+          "track": 1,
+          "lyrics": "",
+          "treatment": "statement",
+          "distance_from_prev_q": null
+        }
+      ],
+      "treatment_key": {
+        "statement":    "exact repeat",
+        "sequence":     "melodic sequence (transposed)",
+        "truncation":   "shortened version",
+        "variation":    "rhythmic or ornamental change",
+        "augmentation": "note values lengthened",
+        "diminution":   "note values shortened",
+        "inversion":    "interval directions flipped",
+        "retrograde":   "played backwards",
+        "development":  "fragmented/developed",
+        "recapitulation":"return after contrast"
+      }
+    }
+  ]
+}
